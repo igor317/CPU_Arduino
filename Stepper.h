@@ -32,12 +32,13 @@ public:
 	void Run();									// цкюбмюъ тсмйжхъ дбхцюрекъ	
 	void SetSteps(int countStepS,bool leftS);	// гюдюрэ йнкхвеярбн ьюцнб х мюопюбкемхе
 	void SetOrient(bool leftS);					// гюдюрэ мюопюбкемхе
-	int GetSteps();								// онксвхрэ нярюбьееяъ йнкхвеярбн ьюцнб
 	void SetSpeed(float intervalS);				// гюдюрэ яйнпнярэ дбхцюрекъ
 	void SetStepMode(bool halfstepS);			// сярюмнбхрэ пефхл (true - ОНКСЬЮЦНБШИ | false - ОНКМНЬЮЦНБШИ)
+	int GetSteps();								// онксвхрэ нярюбьееяъ йнкхвеярбн ьюцнб
+	int GetCounter();							// онксвхрэ йнкхвеярбн ьюцнб
 	bool GetZeroPos();							// онксвхрэ гмювемхе мскебни онгхжхх 
 	bool GetEndPos();							// онксвхрэ гмювемхе йнмевмни онгхжхх
-	int GetCounter();							// онксвхрэ йнкхвеярбн ьюцнб
+
 	void SetZeroCounter();						// намскхрэ явервхй ьюцнб
 
 };

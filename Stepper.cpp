@@ -125,14 +125,6 @@ void Stepper::curstep(int step)
 
 void Stepper::Run()
 {
-	if (countstep > 0)
-	{
-		Move();
-	}
-	else
-	{
-		Stop();
-	}
 	if (!digitalRead(_btnZeroPos))
 	{
 		inZero = true;
@@ -160,6 +152,14 @@ void Stepper::Run()
 	{
 		inEnd = false;
 		clickbEpos = true;
+	}
+	if (countstep > 0)
+	{
+		Move();
+	}
+	else
+	{
+		Stop();
 	}
 }
 
