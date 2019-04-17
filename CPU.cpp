@@ -4,6 +4,7 @@ CPU::CPU()
 {
 	stY = new Stepper(2, 3, 4, 5, A0, A2);
 	stX = new Stepper(6, 7, 8, 9, A1, A3);
+	stZ = new Stepper(10, 11, 12, 13, A4, A5);
 	i = 0;
 	readstate = 0;
 }
@@ -12,6 +13,7 @@ void CPU::Run()
 {
 	stY->Run();
 	stX->Run();
+	stZ->Run();
 	ExecuteCommand();
 	
 	if (Serial.available() > 0)
@@ -85,11 +87,6 @@ void CPU::SendMessage(int state)
 			Serial.print(xCounter);
 			Serial.print(endSymbol);
 			break;
-		case 5: // Spline 2
-			Serial.print(startSymbol);
-			Serial.print("Spline 2");
-			Serial.print(endSymbol);
-			break;
 		case 6: // Circle
 			Serial.print(startSymbol);
 			Serial.print("Circle");
@@ -98,6 +95,11 @@ void CPU::SendMessage(int state)
 		case 7: // Spline 3
 			Serial.print(startSymbol);
 			Serial.print("Spline 3");
+			Serial.print(endSymbol);
+			break;
+		case 10:
+			Serial.print(startSymbol);
+			Serial.print("test");
 			Serial.print(endSymbol);
 			break;
 	}
@@ -126,10 +128,14 @@ void CPU::ExecuteCommand()
 			CircleCommand();
 
 		if (buff[0] == 't' && buff[1] == 'e' && buff[2] == 's' && buff[3] == 't' && buff[4] == '1')
-			Spline2Command(600, 1500, 1200, 0);
+			//Circle2(250, 250, 0);
+			Test();
+			//SplineCommand(600, 1500, 1200, 0);
 
 		if (buff[0] == 't' && buff[1] == 'e' && buff[2] == 's' && buff[3] == 't' && buff[4] == '3')
-			Spline3Command(2000, 1000, -1000, 1000, 1000, 0);
+			//Circle2(250, 250, PI / 4);
+			Test2();
+			//Spline3Command(2000, 1000, -1000, 1000, 1000, 0);
 	}
 }
 
@@ -143,57 +149,8 @@ void CPU::CalculateSpeed(float maxSpeed,int xSteps, int ySteps)
 		ySpeed = 99.99f;
 }
 
-void CPU::CaclulateSpline2Points(int x1, int y1, int x2, int y2)
+void CPU::CaclulateSplinePoints(int x1, int y1, int x2, int y2, int x3, int y3)
 {
-	if (points != NULL)
-		delete points;
-	points = new IPoint[res];
-	float t = 0;
-	float g = 0;
-	float delta = 1 / (float)res;
-	int x = 0;
-	int y = 0;
-	int xt = 0;
-	int yt = 0;
-	for (int i = 0; i < res; ++i)
-	{
-		t += delta;
-		g = t - delta;
-		x = (2 * t - 2 * t * t) * x1 + t * t * x2;
-		y = (2 * t - 2 * t * t) * y1 + t * t * y2;
-		xt = (2 * g - 2 * g * g) * x1 + g * g * x2;
-		yt = (2 * g - 2 * g * g) * y1 + g * g * y2;
-
-		if (x >= xt)
-		{
-			points[i].X = Round(x - xt);
-			points[i].leftX = false;
-		}
-		else
-		{
-			points[i].X = Round(xt - x);
-			points[i].leftX = true;
-		}
-		if (y >= yt)
-		{
-			points[i].Y = Round(y - yt);
-			points[i].leftY = false;
-		}
-		else
-		{
-			points[i].Y = Round(yt - y);
-			points[i].leftY = true;
-		}
-		CalculateSpeed(1, points[i].X, points[i].Y);
-		points[i].xSpeed = xSpeed;
-		points[i].ySpeed = ySpeed;
-	}
-}
-
-void CPU::CaclulateSpline3Points(int x1, int y1, int x2, int y2, int x3, int y3)
-{
-	if (points != NULL)
-		delete points;
 	points = new IPoint[res];
 	float t = 0;
 	float g = 0;
@@ -266,6 +223,53 @@ void CPU::CalculateCirclePoints(int cX, int cY, int radX, int radY)
 		y = radY * sin(t);
 		xt = radX * cos(g);
 		yt = radY * sin(g);
+		if (x >= xt)
+		{
+			points[i].X = Round(x - xt);
+			points[i].leftX = false;
+		}
+		else
+		{
+			points[i].X = Round(xt - x);
+			points[i].leftX = true;
+		}
+		if (y >= yt)
+		{
+			points[i].Y = Round(y - yt);
+			points[i].leftY = false;
+		}
+		else
+		{
+			points[i].Y = Round(yt - y);
+			points[i].leftY = true;
+		}
+		CalculateSpeed(1, points[i].X, points[i].Y);
+		points[i].xSpeed = xSpeed;
+		points[i].ySpeed = ySpeed;
+
+	}
+}
+
+void CPU::CalculateCirclePointsA(int radX, int radY,float alpha)
+{
+	if (points != NULL)
+		delete points;
+	points = new IPoint[res];
+	float t = 0;
+	float g = 0;
+	float delta = PI * 2 / (float)res;
+	float x = 0;
+	float y = 0;
+	float xt = 0;
+	float yt = 0;
+	for (int i = 0; i < res; ++i)
+	{
+		t += delta;
+		g = t - delta;
+		x = radX * cos(t) * cos(alpha) + radY * sin(t) * sin(alpha);
+		y = -radX * cos(t) * sin(alpha) + radY * sin(t) * cos(alpha);
+		xt = radX * cos(g) * cos(alpha) + radY * sin(g) * sin(alpha);
+		yt = -radX * cos(g) * sin(alpha) + radY * sin(g) * cos(alpha);
 		if (x >= xt)
 		{
 			points[i].X = Round(x - xt);
@@ -424,41 +428,11 @@ void CPU::StopCommand()
 {
 	stX->SetSteps(0, true);
 	stY->SetSteps(0, true);
+	stZ->SetSteps(0, true);
 	SendMessage(2);
 }
 
-void CPU::Spline2Command(int x1, int y1, int x2, int y2)
-{
-	if (moveSteppers)
-	{
-		exX = false;
-		exY = false;
-		xCounter = 0;
-		yCounter = 0;
-		CaclulateSpline2Points(x1, y1, x2, y2);
-		moveSteppers = false;
-	}
-	if (stX->GetSteps() <= 0 && !exX)
-	{
-		if (xCounter >= res - 1)
-			exX = true;
-		stX->SetSteps(points[xCounter].X, points[xCounter].leftX);
-		stX->SetSpeed(points[xCounter].xSpeed);
-		xCounter++;
-	}
-	if (stY->GetSteps() <= 0 && !exY)
-	{
-		if (yCounter >= res - 1)
-			exY = true;
-		stY->SetSteps(points[yCounter].Y, points[yCounter].leftY);
-		stY->SetSpeed(points[yCounter].ySpeed);
-		yCounter++;
-	}
-	if (exX && exY)
-		SendMessage(5);
-}
-
-void CPU::Spline3Command(int x1, int y1, int x2, int y2, int x3, int y3)
+void CPU::SplineCommand(int x1, int y1, int x2, int y2, int x3, int y3)
 {
 	if (moveSteppers)
 	{
@@ -548,7 +522,61 @@ void CPU::CircleCommand()
 		SendMessage(6);
 }
 
+void CPU::Circle2(int radX, int radY, float alpha)
+{
+	if (moveSteppers)
+	{
+		moveSteppers = false;
+		exX = false;
+		exY = false;
+		xCounter = 0;
+		yCounter = 0;
+		CalculateCirclePointsA(radX, radY,alpha);
+	}
+	if (stX->GetSteps() <= 0 && !exX)
+	{
+		if (xCounter >= res - 1)
+			exX = true;
+		stX->SetSteps(points[xCounter].X, points[xCounter].leftX);
+		stX->SetSpeed(points[xCounter].xSpeed);
+		xCounter++;
+	}
+	if (stY->GetSteps() <= 0 && !exY)
+	{
+		if (yCounter >= res - 1)
+			exY = true;
+		stY->SetSteps(points[yCounter].Y, points[yCounter].leftY);
+		stY->SetSpeed(points[yCounter].ySpeed);
+		yCounter++;
+	}
+	if (exX && exY && stY->GetSteps() == 0 && stX->GetSteps() == 0)
+		SendMessage(6);
+}
+
 int CPU::Round(float number)
 {
 	return ((number - (int)number) >= 0.5f) ? (int)number + 1 : (int)number;
+}
+
+void CPU::Test()
+{
+	if (moveSteppers)
+	{
+		moveSteppers = false;
+		stZ->SetSpeed(1.5f);
+		stZ->SetSteps(500, false);
+	}
+	if (stZ->GetSteps() == 0)
+		SendMessage(10);
+}
+void CPU::Test2()
+{
+	if (moveSteppers)
+	{
+		moveSteppers = false;
+		stZ->SetSpeed(1.5f);
+		stZ->SetSteps(500, true);
+	}
+	if (stZ->GetSteps() == 0)
+		SendMessage(10);
 }

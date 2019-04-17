@@ -16,6 +16,7 @@ class CPU
 private:
 	Stepper* stY;					// Ось Y
 	Stepper* stX;					// Ось X
+	Stepper* stZ;					// Ось Z
 	IPoint* points;					// Точки кривых
 	int numb;						// Переменная для количества шагов
 	int numbf;						// Переменная для скорости
@@ -43,14 +44,17 @@ private:
 	void CalibrationXCommand();		// Команда МАКСИМАЛЬНАЯ ДЛИНА ПО ОСИ X
 	void StopCommand();				// Команда STOP
 	void CircleCommand();			// Команда Circle
-	void Spline2Command(int x1, int y1, int x2, int y2);				 // Команда Spline 2
-	void Spline3Command(int x1, int y1, int x2, int y2, int x3, int y3); // Команда Spline 3
+	void Circle2(int radX, int radY, float alpha);
+	void SplineCommand(int x1, int y1, int x2, int y2, int x3, int y3); // Команда Spline 3
+	void Test();
+	void Test2();
 
 
 	void CalculateSpeed(float maxSpeed,int xSteps, int ySteps);	// Расчитать скорость
-	void CaclulateSpline2Points(int x1, int y1, int x2, int y2);
-	void CaclulateSpline3Points(int x1, int y1, int x2, int y2, int x3, int y3);
+	void CaclulateSplinePoints(int x1, int y1, int x2, int y2, int x3, int y3);
 	void CalculateCirclePoints(int cX, int cY, int radX, int radY);
+	void CalculateCirclePointsA(int radX, int radY, float alpha);
+	
 
 	int Round(float number);
 
